@@ -1,5 +1,5 @@
 --[================================================================%]
--- Steal an Egg Script | Keyless | Red Theme UI | Full Auto Features
+-- Steal an Egg Script | Keyless | Red Theme UI | Fixed GUI Display
 --[================================================================%]
 
 local Players = game:GetService("Players")
@@ -18,81 +18,12 @@ getgenv().Config = {
     AntiHit = true
 }
 
--- 1. LOADING SCREEN (0% - 100%) WITH RED THEME
-local LoadingGui = Instance.new("ScreenGui")
-LoadingGui.Name = "StealAnEggLoading"
-LoadingGui.Parent = CoreGui
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 360, 0, 130)
-MainFrame.Position = UDim2.new(0.5, -180, 0.5, -65)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = LoadingGui
-
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 10)
-UICorner.Parent = MainFrame
-
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(239, 68, 68)
-UIStroke.Thickness = 2
-UIStroke.Parent = MainFrame
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 45)
-Title.BackgroundTransparency = 1
-Title.Text = "STEAL AN EGG - PRO HUB"
-Title.TextColor3 = Color3.fromRGB(239, 68, 68)
-Title.TextSize = 18
-Title.Font = Enum.Font.GothamBold
-Title.Parent = MainFrame
-
-local BarBackground = Instance.new("Frame")
-BarBackground.Size = UDim2.new(0, 320, 0, 18)
-BarBackground.Position = UDim2.new(0.5, -160, 0.6, 0)
-BarBackground.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-BarBackground.BorderSizePixel = 0
-BarBackground.Parent = MainFrame
-
-local BarCorner = Instance.new("UICorner")
-BarCorner.CornerRadius = UDim.new(0, 6)
-BarCorner.Parent = BarBackground
-
-local BarFill = Instance.new("Frame")
-BarFill.Size = UDim2.new(0, 0, 1, 0)
-BarFill.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
-BarFill.BorderSizePixel = 0
-BarFill.Parent = BarBackground
-
-local FillCorner = Instance.new("UICorner")
-FillCorner.CornerRadius = UDim.new(0, 6)
-FillCorner.Parent = BarFill
-
-local PercentLabel = Instance.new("TextLabel")
-PercentLabel.Size = UDim2.new(1, 0, 0, 20)
-PercentLabel.Position = UDim2.new(0, 0, 0.82, 0)
-PercentLabel.BackgroundTransparency = 1
-PercentLabel.Text = "Loading 0%"
-PercentLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-PercentLabel.TextSize = 13
-PercentLabel.Font = Enum.Font.GothamMedium
-PercentLabel.Parent = MainFrame
-
--- Animate Loading
-task.spawn(function()
-    for i = 0, 100, 10 do
-        BarFill.Size = UDim2.new(i / 100, 0, 1, 0)
-        PercentLabel.Text = "Loading " .. i .. "%"
-        task.wait(0.05)
-    end
-    task.wait(0.3)
-    LoadingGui:Destroy()
-end)
-
--- 2. CREATE MAIN GUI INTERFACE
+-- 1. CREATE MAIN GUI INTERFACE (Created first, but set to invisible until loading finishes)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "StealAnEggHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Enabled = false -- Hidden initially during loading
 ScreenGui.Parent = CoreGui
 
 local Window = Instance.new("Frame")
@@ -101,7 +32,7 @@ Window.Position = UDim2.new(0.5, -150, 0.5, -170)
 Window.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 Window.BorderSizePixel = 0
 Window.Active = true
-Window.Draggable = true -- Allows you to drag the menu around
+Window.Draggable = true
 Window.Parent = ScreenGui
 
 local WindowCorner = Instance.new("UICorner")
@@ -185,10 +116,85 @@ createToggle("Auto Hatch Eggs", "AutoHatch")
 createToggle("Auto Sell Items", "AutoSell")
 createToggle("Anti-Hit / Godmode", "AntiHit")
 
+-- 2. LOADING SCREEN (0% - 100%) WITH RED THEME
+local LoadingGui = Instance.new("ScreenGui")
+LoadingGui.Name = "StealAnEggLoading"
+LoadingGui.ResetOnSpawn = false
+LoadingGui.Parent = CoreGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 360, 0, 130)
+MainFrame.Position = UDim2.new(0.5, -180, 0.5, -65)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = LoadingGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(239, 68, 68)
+UIStroke.Thickness = 2
+UIStroke.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.BackgroundTransparency = 1
+Title.Text = "STEAL AN EGG - PRO HUB"
+Title.TextColor3 = Color3.fromRGB(239, 68, 68)
+Title.TextSize = 18
+Title.Font = Enum.Font.GothamBold
+Title.Parent = MainFrame
+
+local BarBackground = Instance.new("Frame")
+BarBackground.Size = UDim2.new(0, 320, 0, 18)
+BarBackground.Position = UDim2.new(0.5, -160, 0.6, 0)
+BarBackground.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+BarBackground.BorderSizePixel = 0
+BarBackground.Parent = MainFrame
+
+local BarCorner = Instance.new("UICorner")
+BarCorner.CornerRadius = UDim.new(0, 6)
+BarCorner.Parent = BarBackground
+
+local BarFill = Instance.new("Frame")
+BarFill.Size = UDim2.new(0, 0, 1, 0)
+BarFill.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
+BarFill.BorderSizePixel = 0
+BarFill.Parent = BarBackground
+
+local FillCorner = Instance.new("UICorner")
+FillCorner.CornerRadius = UDim.new(0, 6)
+FillCorner.Parent = BarFill
+
+local PercentLabel = Instance.new("TextLabel")
+PercentLabel.Size = UDim2.new(1, 0, 0, 20)
+PercentLabel.Position = UDim2.new(0, 0, 0.82, 0)
+PercentLabel.BackgroundTransparency = 1
+PercentLabel.Text = "Loading 0%"
+PercentLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+PercentLabel.TextSize = 13
+PercentLabel.Font = Enum.Font.GothamMedium
+PercentLabel.Parent = MainFrame
+
+-- Animate Loading and then reveal the main GUI
+task.spawn(function()
+    for i = 0, 100, 10 do
+        BarFill.Size = UDim2.new(i / 100, 0, 1, 0)
+        PercentLabel.Text = "Loading " .. i .. "%"
+        task.wait(0.05)
+    end
+    task.wait(0.3)
+    
+    -- Clean up loading screen and show main control window
+    LoadingGui:Destroy()
+    ScreenGui.Enabled = true
+end)
+
 -- 3. BACKGROUND AUTOMATION LOOPS
 local Remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
 
--- Anti-Hit Loop
 RunService.Heartbeat:Connect(function()
     if not Config.AntiHit then return end
     pcall(function()
@@ -208,7 +214,6 @@ RunService.Heartbeat:Connect(function()
     end)
 end)
 
--- Auto Treadmill Loop
 task.spawn(function()
     while true do
         task.wait(0.5)
@@ -223,7 +228,6 @@ task.spawn(function()
     end
 end)
 
--- Auto Steal Loop
 task.spawn(function()
     while true do
         task.wait(1)
@@ -245,4 +249,4 @@ task.spawn(function()
     end
 end)
 
-print("[StealAnEgg] GUI Loaded Successfully!")
+print("[StealAnEgg] GUI and Scripts Loaded Successfully!")
