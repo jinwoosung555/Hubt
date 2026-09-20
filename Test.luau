@@ -1,13 +1,16 @@
---[================================================================%]
--- Steal an Egg Script | Keyless | Red Theme UI | Fixed GUI Display
+    --[================================================================%]
+-- Steal an Egg Script | Keyless | Red Theme UI | Stable Loading & GUI
 --[================================================================%]
 
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
-local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+
+-- Clean up any existing instances to avoid duplicates
+if CoreGui:FindFirstChild("StealAnEggLoading") then CoreGui.StealAnEggLoading:Destroy() end
+if CoreGui:FindFirstChild("StealAnEggHub") then CoreGui.StealAnEggHub:Destroy() end
 
 -- Global Toggle Settings
 getgenv().Config = {
@@ -18,12 +21,12 @@ getgenv().Config = {
     AntiHit = true
 }
 
--- 1. CREATE MAIN GUI INTERFACE (Created first, but set to invisible until loading finishes)
+-- 1. CREATE MAIN GUI INTERFACE (Hidden initially)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "StealAnEggHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.Enabled = false -- Hidden initially during loading
+ScreenGui.Enabled = false
 ScreenGui.Parent = CoreGui
 
 local Window = Instance.new("Frame")
@@ -72,7 +75,6 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutIndex
 UIListLayout.Padding = UDim.new(0, 8)
 UIListLayout.Parent = Container
 
--- Helper function to create interactive toggle buttons in GUI
 local function createToggle(name, configKey)
     local ToggleButton = Instance.new("TextButton")
     ToggleButton.Size = UDim2.new(1, 0, 0, 45)
@@ -109,14 +111,13 @@ local function createToggle(name, configKey)
     end)
 end
 
--- Generate Toggles on GUI
 createToggle("Auto Steal Eggs", "AutoSteal")
 createToggle("Auto Treadmill / Speed", "AutoTreadmill")
 createToggle("Auto Hatch Eggs", "AutoHatch")
 createToggle("Auto Sell Items", "AutoSell")
 createToggle("Anti-Hit / Godmode", "AntiHit")
 
--- 2. LOADING SCREEN (0% - 100%) WITH RED THEME
+-- 2. LOADING SCREEN (0% - 100%)
 local LoadingGui = Instance.new("ScreenGui")
 LoadingGui.Name = "StealAnEggLoading"
 LoadingGui.ResetOnSpawn = false
@@ -178,21 +179,19 @@ PercentLabel.TextSize = 13
 PercentLabel.Font = Enum.Font.GothamMedium
 PercentLabel.Parent = MainFrame
 
--- Animate Loading and then reveal the main GUI
+-- Async Loading Loop to prevent thread locking
 task.spawn(function()
-    for i = 0, 100, 10 do
+    for i = 0, 100, 5 do
         BarFill.Size = UDim2.new(i / 100, 0, 1, 0)
         PercentLabel.Text = "Loading " .. i .. "%"
-        task.wait(0.05)
+        task.wait(0.02)
     end
-    task.wait(0.3)
-    
-    -- Clean up loading screen and show main control window
+    task.wait(0.2)
     LoadingGui:Destroy()
     ScreenGui.Enabled = true
 end)
 
--- 3. BACKGROUND AUTOMATION LOOPS
+-- 3. BACKGROUND LOGIC LOOPS
 local Remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
 
 RunService.Heartbeat:Connect(function()
@@ -249,4 +248,4 @@ task.spawn(function()
     end
 end)
 
-print("[StealAnEgg] GUI and Scripts Loaded Successfully!")
+print("[StealAnEgg] GitHub Script Loaded Successfully!")
