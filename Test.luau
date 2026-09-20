@@ -1,6 +1,5 @@
 --[================================================================%]
--- Steal an Egg Script | Keyless | Red Theme | Auto Features Added
--- Features: Loading Screen, Anti-Hit, Auto Steal, Auto Treadmill, Auto Hatch
+-- Steal an Egg Script | Keyless | Red Theme UI | Full Auto Features
 --[================================================================%]
 
 local Players = game:GetService("Players")
@@ -10,13 +9,13 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
--- Global Toggle Settings for New Features
+-- Global Toggle Settings
 getgenv().Config = {
-    AutoSteal = true,
-    AutoTreadmill = true,
-    AutoHatch = true,
-    AutoSell = true,
-    SelectedEggType = "Best", -- Options: "Best", "Common", "Rare"
+    AutoSteal = false,
+    AutoTreadmill = false,
+    AutoHatch = false,
+    AutoSell = false,
+    AntiHit = true
 }
 
 -- 1. LOADING SCREEN (0% - 100%) WITH RED THEME
@@ -36,7 +35,7 @@ UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = MainFrame
 
 local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(239, 68, 68) -- Red Theme Accent
+UIStroke.Color = Color3.fromRGB(239, 68, 68)
 UIStroke.Thickness = 2
 UIStroke.Parent = MainFrame
 
@@ -80,78 +79,162 @@ PercentLabel.TextSize = 13
 PercentLabel.Font = Enum.Font.GothamMedium
 PercentLabel.Parent = MainFrame
 
--- Animate Loading 0-100%
+-- Animate Loading
 task.spawn(function()
-    for i = 0, 100, 5 do
+    for i = 0, 100, 10 do
         BarFill.Size = UDim2.new(i / 100, 0, 1, 0)
         PercentLabel.Text = "Loading " .. i .. "%"
-        task.wait(0.01)
+        task.wait(0.05)
     end
     task.wait(0.3)
     LoadingGui:Destroy()
 end)
 
--- 2. CORE ANTI-HIT & GODMODE SYSTEM
-local function applyAntiHit()
-    local character = LocalPlayer.Character
-    if not character then return end
-    
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-        if humanoid.Health < 100 then
-            humanoid.Health = 100
+-- 2. CREATE MAIN GUI INTERFACE
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "StealAnEggHub"
+ScreenGui.Parent = CoreGui
+
+local Window = Instance.new("Frame")
+Window.Size = UDim2.new(0, 300, 0, 340)
+Window.Position = UDim2.new(0.5, -150, 0.5, -170)
+Window.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Window.BorderSizePixel = 0
+Window.Active = true
+Window.Draggable = true -- Allows you to drag the menu around
+Window.Parent = ScreenGui
+
+local WindowCorner = Instance.new("UICorner")
+WindowCorner.CornerRadius = UDim.new(0, 12)
+WindowCorner.Parent = Window
+
+local WindowStroke = Instance.new("UIStroke")
+WindowStroke.Color = Color3.fromRGB(239, 68, 68)
+WindowStroke.Thickness = 2
+WindowStroke.Parent = Window
+
+local TopBar = Instance.new("TextLabel")
+TopBar.Size = UDim2.new(1, 0, 0, 40)
+TopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+TopBar.Text = "  Steal An Egg Hub"
+TopBar.TextColor3 = Color3.fromRGB(239, 68, 68)
+TopBar.TextSize = 15
+TopBar.Font = Enum.Font.GothamBold
+TopBar.TextXAlignment = Enum.TextXAlignment.Left
+TopBar.Parent = Window
+
+local TopBarCorner = Instance.new("UICorner")
+TopBarCorner.CornerRadius = UDim.new(0, 12)
+TopBarCorner.Parent = TopBar
+
+local Container = Instance.new("ScrollingFrame")
+Container.Size = UDim2.new(1, -20, 1, -55)
+Container.Position = UDim2.new(0, 10, 0, 48)
+Container.BackgroundTransparency = 1
+Container.BorderSizePixel = 0
+Container.CanvasSize = UDim2.new(0, 0, 0, 260)
+Container.ScrollBarThickness = 4
+Container.Parent = Window
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.SortOrder = Enum.SortOrder.LayoutIndex
+UIListLayout.Padding = UDim.new(0, 8)
+UIListLayout.Parent = Container
+
+-- Helper function to create interactive toggle buttons in GUI
+local function createToggle(name, configKey)
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size = UDim2.new(1, 0, 0, 45)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    ToggleButton.Text = "  " .. name .. ": OFF"
+    ToggleButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+    ToggleButton.TextSize = 13
+    ToggleButton.Font = Enum.Font.GothamMedium
+    ToggleButton.TextXAlignment = Enum.TextXAlignment.Left
+    ToggleButton.Parent = Container
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = ToggleButton
+
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = Color3.fromRGB(50, 50, 50)
+    Stroke.Thickness = 1
+    Stroke.Parent = ToggleButton
+
+    ToggleButton.MouseButton1Click:Connect(function()
+        Config[configKey] = not Config[configKey]
+        if Config[configKey] then
+            ToggleButton.Text = "  " .. name .. ": ON"
+            ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Stroke.Color = Color3.fromRGB(239, 68, 68)
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+        else
+            ToggleButton.Text = "  " .. name .. ": OFF"
+            ToggleButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+            Stroke.Color = Color3.fromRGB(50, 50, 50)
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
         end
-    end
-    
-    for _, part in ipairs(character:GetDescendants()) do
-        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-            part.CanTouch = false
-        end
-    end
+    end)
 end
 
-RunService.Heartbeat:Connect(function()
-    pcall(applyAntiHit)
-end)
+-- Generate Toggles on GUI
+createToggle("Auto Steal Eggs", "AutoSteal")
+createToggle("Auto Treadmill / Speed", "AutoTreadmill")
+createToggle("Auto Hatch Eggs", "AutoHatch")
+createToggle("Auto Sell Items", "AutoSell")
+createToggle("Anti-Hit / Godmode", "AntiHit")
 
--- 3. NEW FEATURES: AUTO TREADMILL & AUTO STEAL LOGIC
+-- 3. BACKGROUND AUTOMATION LOOPS
 local Remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
 
--- Auto Treadmill (Loops training interaction to increase player speed)
+-- Anti-Hit Loop
+RunService.Heartbeat:Connect(function()
+    if not Config.AntiHit then return end
+    pcall(function()
+        local character = LocalPlayer.Character
+        if not character then return end
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+            if humanoid.Health < 100 then humanoid.Health = 100 end
+        end
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                part.CanTouch = false
+            end
+        end
+    end)
+end)
+
+-- Auto Treadmill Loop
 task.spawn(function()
     while true do
         task.wait(0.5)
         if Config.AutoTreadmill then
             pcall(function()
-                -- Triggers treadmill / training function based on typical game structure
                 local trainRemote = Remotes:FindFirstChild("Treadmill") or Remotes:FindFirstChild("Train") or Remotes:FindFirstChild("UpdateSpeed")
                 if trainRemote and trainRemote:IsA("RemoteEvent") then
                     trainRemote:FireServer()
-                elseif trainRemote and trainRemote:IsA("RemoteFunction") then
-                    trainRemote:InvokeServer()
                 end
             end)
         end
     end
 end)
 
--- Auto Steal (Automatically detects and interacts with active eggs in the map)
+-- Auto Steal Loop
 task.spawn(function()
     while true do
         task.wait(1)
         if Config.AutoSteal then
             pcall(function()
-                local eggsFolder = workspace:FindFirstChild("Eggs") or workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Eggs")
+                local eggsFolder = workspace:FindFirstChild("Eggs") or (workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Eggs"))
                 if eggsFolder then
                     for _, egg in ipairs(eggsFolder:GetChildren()) do
                         local prompt = egg:FindFirstChildWhichIsA("ProximityPrompt", true)
                         local handle = egg:FindFirstChild("Hitbox") or egg:FindFirstChild("PrimaryPart") or egg
-                        
                         if prompt and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                            -- Teleport / Instant touch interaction simulation
                             LocalPlayer.Character.HumanoidRootPart.CFrame = handle.CFrame + Vector3.new(0, 3, 0)
                             fireproximityprompt(prompt)
                         end
@@ -162,4 +245,4 @@ task.spawn(function()
     end
 end)
 
-print("[StealAnEgg] Upgraded Script with Auto Steal & Treadmill initialized successfully!")
+print("[StealAnEgg] GUI Loaded Successfully!")
